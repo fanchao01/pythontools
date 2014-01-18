@@ -12,7 +12,7 @@ Each char in delims acts as a delimiter, e.g.
     t.getNext()  ==>  'abc'
     t.getNext()  ==>  'def'
     t.getNext()  ==>  'gh'
-    t.getNext()  ==> raise EndTokenizerError (no more token)
+    t.getNext()  ==>  raise EndTokenizerError (no more token)
 
 2.
     for token in t:
@@ -20,6 +20,7 @@ Each char in delims acts as a delimiter, e.g.
     ==> 'abc'
     ==> 'def'
     ==> 'gh'
+
 """
 
 
@@ -75,6 +76,7 @@ class Tokenizer(object):
                 raise StopIteration
             yield self.string[begin:end]
 
+
 if __name__ == "__main__":
     t = Tokenizer('  vl abc daef   hagk a  a ', ' a')
     assert list(t) == ['vl', 'bc', 'd', 'ef', 'h', 'gk']
@@ -85,3 +87,4 @@ if __name__ == "__main__":
         t.getNext()
     except EndTokenizerError:
         pass
+
