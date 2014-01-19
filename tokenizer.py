@@ -9,10 +9,10 @@ Tokenizer is used to split a string with delims.
 Each char in delims acts as a delimiter, e.g.
     t = Tokenizer(" abc .def.gh, ", " .")
 1.
-    t.getNext()  ==>  'abc'
-    t.getNext()  ==>  'def'
-    t.getNext()  ==>  'gh'
-    t.getNext()  ==>  raise EndTokenizerError (no more token)
+    t.getToken()  ==>  'abc'
+    t.getToken()  ==>  'def'
+    t.getToken()  ==>  'gh'
+    t.getToken()  ==>  raise EndTokenizerError (no more token)
 
 2.
     for token in t:
