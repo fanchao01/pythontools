@@ -54,15 +54,16 @@ class Source(object):
         if __debug__:
             print self.files
 
+    def _find(self, x, y):
+        if self.sorted_as_mtime:
+            return os.stat(x).st_mtime < os.stat(y).st_mtime
+
+        return x < y
+
     def hasNextFile(self):
         if self.curr_filename:
-            if self.sorted_as_mtime:
-                findfunc = lambda x, y: os.stat(x).st_mtime < os.stat(y).st_mtime
-            else:
-                findfunc = lambda x, y: x < y
-
             for fname in self.files:
-                if findfunc(self.curr_filename, fname):
+                if self._find(self.curr_filename, fname):
                     self.curr_filename = fname
                     return True
             else: #do not find valid file

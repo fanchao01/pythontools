@@ -72,9 +72,9 @@ class Tokenizer(object):
         while True:
             try:
                 begin, end = self.getNext()
+                yield self.string[begin:end]
             except EndTokenizerError:
                 raise StopIteration
-            yield self.string[begin:end]
 
 
 if __name__ == "__main__":
