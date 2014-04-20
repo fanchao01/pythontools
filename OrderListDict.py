@@ -39,6 +39,8 @@ class OrderList(UserList.UserList):
     def insert(self, item):
         bisect.insort_right(self.data, item)
 
+    append = insert
+
 
 class OrderDict(UserDict.UserDict):
     def __init__(self, dict=None, **kwargs):
@@ -51,9 +53,12 @@ class OrderDict(UserDict.UserDict):
         UserDict.UserDict.__init__(self, dict, **new_kwargs)
 
     def __setitem__(self, key, item):
-        if key not in self.data:
-            self.data[key] = OrderList()
-        self.data[key].insert(item)
+        l = self.data.setdefault(key, OrderList())
+        l.append(item)
+        
+#        if key not in self.data:
+#            self.data[key] = OrderList()
+#        self.data[key].insert(item)
 
 
 if __name__ == "__main__":
@@ -95,5 +100,6 @@ if __name__ == "__main__":
             self.assertEqual(self.od.data, {1: [1, 1], 50: [50], 100: [100]})
             self.od[50] = 49
             self.assertEqual(self.od.data, {1: [1, 1], 50: [49, 50], 100: [100]})
+
 
     unittest.main()

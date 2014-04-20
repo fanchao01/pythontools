@@ -40,8 +40,9 @@ class Stack(object):
             self._list.extend(initlist)
     
     def __iter__(self):
-        while self._list:
-            yield self.pop()
+        with ScopedLock(self._mutex):
+            while self._list:
+                yield self._list.pop()
 
     def __len__(self):
         return len(self._list)
@@ -54,6 +55,10 @@ class Stack(object):
     def pop(self):
         with ScopedLock(self._mutex):
             return self._list.pop()
+
+    def size(self):
+        with ScopedLock(self._mutex):
+            return len(self._list)
         
 
 
@@ -73,7 +78,10 @@ class AtExitManager(object):
         self._stack = Stack(self._mutex)
 
     def __len__(self):
-        return len(self._stack)
+        return self._stack.size()
+
+    def size(self):
+        return len(self)
 
     def registerCallback(self, func, *args):
         self._stack.push(Task(func, *args))
@@ -82,6 +90,7 @@ class AtExitManager(object):
         self._stack.push(task)
 
     def processTasks(self):
+        #the self._stack is blocked, when processTasks runs
         for task in self._stack:
             task()
 
@@ -111,5 +120,6 @@ if __name__ == "__main__":
     at.registerCallback(func, 1)
     at.registerTask(Task(func, 2))
     assert(len(at) == 2)
+    assert(at.size() == 2)
     at()
 

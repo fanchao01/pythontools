@@ -108,7 +108,7 @@ class Queue(object):
             elif timeout < 0:
                 raise ValueError("timeout must be > 0, given(%d)" % timeout)
             else:
-                end = _time.time() +timeout
+                end = _time.time() + timeout
                 while self._qsize() == 0:
                     remaining = end  - _time.time()
                     if remaining < 0.0:
@@ -155,3 +155,4 @@ if __name__ == "__main__":
     w = Worker(q)
     w.start()
     q.put(10)
+

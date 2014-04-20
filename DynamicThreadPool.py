@@ -20,8 +20,7 @@ TODO:
 
 Known:
 Python does not surpport the multi-thread concept as the pthread library in linux,
-all threads work only in one Process. So DynamicThreadPool is useless in most of scene :<)
-But still, it is a good implementation of the concept of the dynamic thread pool :-)
+all threads work only in one Process. :<)
 """
 
 __author__ = "fanchao01"
@@ -51,7 +50,7 @@ class TaskQueue(object):
         return not self.data
 
     def full(self):
-        return self.max_capacity and yself.size() >= self.max_capacity
+        return self.max_capacity and self.size() >= self.max_capacity
 
     def pop(self):
         try:
@@ -85,6 +84,7 @@ class Worker(Thread):
     def __init__(self, pool):
         self.pool = pool
         super(Worker, self).__init__()
+        self.setDaemon()
 
     @staticmethod
     def spawnNoneJoinableThread(pool):
