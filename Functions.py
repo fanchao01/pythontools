@@ -60,7 +60,57 @@ example:
         return ()
 
 
+#send_email is a easy function for sending a mail wihout login needed
+from smtplib import SMTP
+from email.MIMEText import MIMEText
+
+
+class SendMailError(Exception):
+    pass
+
+
+def send_mail(frm, to, subject, content, content_type='palin', server='localhost', port=25):
+    if isinstance(to, basestring):
+        to = [to]
+
+    try:
+        msg = MIMEText(content,  content_type, 'utf-8')
+        msg['Subject'] = subject
+        msg['From'] = frm
+
+        conn = SMTP(server, 25)
+        conn.set_debuglevel(False)
+#        conn.login(username, password)
+        try:
+            conn.sendmail(frm, to, msg.as_string())
+        finally:
+            conn.quit()
+
+    except Exception as exc:
+        raise SendMailError(exc)
+
+
+#a mandatory curring method to be a replace of functools.partial.
+#for functools.partial is a type, it can not be used for methods in a class
+def curry(_curried_func, *args, **kwargs):
+    def _curry(*moreargs, **morekwargs):
+        return _curried_func(*(args + moreargs), **dict(kwargs, **morekwargs))
+    return _curry
+
+
+#given a list of data, generate a itertor of indices of the slice in the give step
+#combinations(range(3), 1) ==> ((0, 1), (1, 2))
+#combinations(range(6), 2) ==> ((0, 2), (2, 4), (4, None))
+import itertools
+
+
+def combinations(lst, step=1):
+    return itertools.izip(lst[::step], lst[step::step] + [None,])
+
+
 if __name__ == '__main__':
     f = get_fields("cpu0 0 1 2\ncpu1 3 4 5\ncpu1 6 7 8", [0, 2], 'cpu1')
     print f
+
+    print tuple(combinations(range(6), 2))
 
