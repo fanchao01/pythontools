@@ -102,8 +102,9 @@ def curry(_curried_func, *args, **kwargs):
 import itertools
 
 
-def combinations(lst, step=1):
-    return itertools.izip(lst[::step], lst[step::step] + [None,])
+def combinations(alist, step=1):
+#    return itertools.izip(lst[::step], lst[step::step] + [None,])
+    return map(None, alist[::step], alist[step::step])
 
 
 
