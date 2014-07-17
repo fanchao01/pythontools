@@ -4,10 +4,8 @@
 __author__ = 'fanchao01'
 __version__ = '0.0.1'
 
-all = ['wcl', 'cxx_files_lines_count']
 
-
-#wcl is a function like bask commands 'wc -l'
+#wcl is a function like bash commands 'wc -l'
 def wcl(path, ext=None, depth=None, followlinks=False):
     filt = lambda f: os.path.splitext(f)[-1] in ext if ext else None
 
@@ -106,6 +104,27 @@ import itertools
 
 def combinations(lst, step=1):
     return itertools.izip(lst[::step], lst[step::step] + [None,])
+
+
+
+#decorator that creates converts a method with a single self argument 
+#into a property  cached in instance
+#   class Test(object):
+#       @cached_property
+#       def h(self):
+#           return 'hello,world'
+#
+#at first type(h) is a 'instancemethod'
+#run instance.h >> 'hello,world'
+#then, type(h) changed to be 'str' , the result assigned to h itself
+
+class cached_property(object):
+    def __init__(self, func):
+        self.func = func
+
+    def __get__(self, instance, owner):
+        res = instance.__dict__[self.func.__name__] = self.func(instance)
+        return res
 
 
 if __name__ == '__main__':
