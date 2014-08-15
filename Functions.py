@@ -99,9 +99,6 @@ def curry(_curried_func, *args, **kwargs):
 #given a list of data, generate a itertor of indices of the slice in the give step
 #combinations(range(3), 1) ==> ((0, 1), (1, 2))
 #combinations(range(6), 2) ==> ((0, 2), (2, 4), (4, None))
-import itertools
-
-
 def combinations(alist, step=1):
 #    return itertools.izip(lst[::step], lst[step::step] + [None,])
     return map(None, alist[::step], alist[step::step])

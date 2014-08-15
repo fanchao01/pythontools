@@ -7,7 +7,7 @@ __version__ = '0.0.1'
 
 """
 This defines a OrderedDict class as the same as the OrderedDict in collections module.
-Insteading of using inexplicable links of python, this class use a index to trace the order of values.
+Instead of using inexplicable links in python, this class use a index to trace the order of values.
 
 OrderedDict = {key: (index, value), key2: (index2, value2)}.
 """

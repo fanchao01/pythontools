@@ -84,7 +84,7 @@ class Worker(Thread):
     def __init__(self, pool):
         self.pool = pool
         super(Worker, self).__init__()
-        self.setDaemon()
+        self.setDaemon(True)
 
     @staticmethod
     def spawnNoneJoinableThread(pool):

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 """
-Duration is the time delta like the datetime.timedelta in standard library.
-But Duration could be initialized with d = Duration(days=1, minutes=2), or with d.seconds=1,
-while the timedelta only could be with one argument in second.
+Duration is the time delta class like the datetime.timedelta in standard library.
+But Duration could be initialized with d = Duration(days=1, minutes=2), 
+or with d.seconds=1. while the timedelta only could be with one argument in second.
 
 All Duration and Time class has the precision of milliseconds.
 Except Time.clock has the real precision of time.clock (gettimeofday in unix-like system).
@@ -19,12 +19,12 @@ import time
 __all__ = ['Duration', 'Time']
 
 
-class TIME:
+class TIME(object):
     MSECONDS_PER_MSECONDS = 1
     MSECONDS_PER_SECOND = 1000
-    MSECONDS_PER_MINUTE = 60 * 1000
-    MSECONDS_PER_HOUR = 60 * 60 * 1000
-    MSECONDS_PER_DAY = 24 * 60 * 60 * 1000
+    MSECONDS_PER_MINUTE = 60000
+    MSECONDS_PER_HOUR = 3600000
+    MSECONDS_PER_DAY = 86400000
 
     _TO_MSECONDS={'mseconds': MSECONDS_PER_MSECONDS,
                   'seconds': MSECONDS_PER_SECOND,
@@ -38,7 +38,7 @@ class TIME:
                   'minutes': 1/MSECONDS_PER_MINUTE,
                   'hours': 1/MSECONDS_PER_HOUR,
                   'days': 1/MSECONDS_PER_DAY
-    }
+                }
 
 
 class TimeDescriptor(object):

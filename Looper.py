@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-*- encoding: gb2312 -*-
+#-*- encoding: utf-8 -*-
 
 
 """
