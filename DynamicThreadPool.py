@@ -68,9 +68,9 @@ class TaskQueue(object):
 
 
 class PendingTask(object):
-    def __init__(self, func=None, args=(), kwargs={}):
-        self.args = tuple(args)
-        self.kwargs = dict(kwargs)
+    def __init__(self, func=None, args=None, kwargs=None):
+        self.args = args or ()
+        self.kwargs = kwargs or {}
         self.func = func
 
     def __call__(self):
