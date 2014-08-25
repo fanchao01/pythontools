@@ -109,11 +109,11 @@ class Duration(object):
 
     def __mul__(self, mul):
         ms = self._mseconds * mul
-        return Druation(mseconds=ms)
+        return Duration(mseconds=ms)
 
     def __div__(self, div):
         ms = self._mseconds / div
-        return Druation(mseconds=ms)
+        return Duration(mseconds=ms)
 
     def __iadd__(self, other):
         self._mseconds += other._mseconds

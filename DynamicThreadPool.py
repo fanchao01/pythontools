@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 #-*- encoding:utf-8 -*-
-
-
 """
 DynamicThreadPool is a pool of dynamic threads. It could create and destroy the worker thread dynamically.
 e.g.
     pool = DynamicThreadPool(2, 10)
     for i in range(100):
-        pool.addTask(func, *args, **kwargs)
+        pool.post_task(func, *args, **kwargs)
 
     pool.terminate()
 
@@ -22,61 +20,27 @@ Known:
 Python does not surpport the multi-thread concept as the pthread library in linux,
 all threads work only in one Process. :<)
 """
-
-__author__ = "fanchao01"
-__version__ = "1.0.0"
+import time
+import logging
+import Queue
 
 from threading import Thread
-from threading import Lock as Mutex, Condition as ConVar
+from threading import RLock as Mutex, Condition as ConVar
 
 
-class Full(Exception):
-    pass
-
-
-class Empty(Exception):
-    pass
-
-
-class TaskQueue(object):
-    def __init__(self, max_capacity):
-        self.max_capacity = max_capacity
-        self.data = []
-
-    def size(self):
-        return len(self.data)
-
-    def empty(self):
-        return not self.data
-
-    def full(self):
-        return self.max_capacity and self.size() >= self.max_capacity
-
-    def pop(self):
-        try:
-            return self.data.pop()
-        except IndexError:
-            raise Empty("task queue empty")
-
-    def put(self, item):
-        if self.full():
-            raise Full("task queue full")
-        return self.data.insert(0, item)
-
-    def clear(self):
-        self.data = []
+threads_pool = None
 
 
 class PendingTask(object):
-    def __init__(self, func=None, args=(), kwargs={}):
-        self.args = tuple(args)
-        self.kwargs = dict(kwargs)
+    def __init__(self, func=None, args=None, kwargs=None):
+        self.args = args or ()
+        self.kwargs = kwargs or {}
         self.func = func
 
     def __call__(self):
         return self.func(*self.args, **self.kwargs)
 
-    def is_null(self):
+    def is_over(self):
         return self.func is None
 
 
@@ -84,45 +48,25 @@ class Worker(Thread):
     def __init__(self, pool):
         self.pool = pool
         super(Worker, self).__init__()
-        self.setDaemon(True)
+        self.daemon = True
 
     @staticmethod
-    def spawnNoneJoinableThread(pool):
+    def spawn_daemonic_thread(pool):
         worker = Worker(pool)
         worker.start()
+        return worker
 
     def run(self):
-        if __debug__:
-            print "[{0}] thread starts".format(self.ident)
+        logging.debug("[{0}] thread starts".format(self.ident))
 
         while True:
-            task = self.pool.waitForTask()
-            if task.is_null():
+            task = self.pool.wait_task()
+            if task.is_over():
                 break
             task()
 
-        self.pool.decSpawnedThreads()
-        if __debug__:
-            print "[{0}] thread ends".format(self.ident)
-
-        #actually it is useless
-        del self
-
-
-#threading.Lock supports 'with statement' directly
-class ScopedLock(object):
-    def __init__(self, lock):
-        self.lock = lock
-
-    def __enter__(self):
-        return self.lock.__enter__()
-#        self.lock.acquire()
-#        return self.lock
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        return self.lock.__exit__()
-#        self.lock.release()
-#        return False
+        self.pool.desc_spawned_thread()
+        logging.debug("[{0}] thread ends".format(self.ident))
 
 
 class DynamicThreadPool(object):
@@ -135,29 +79,35 @@ class DynamicThreadPool(object):
         self.n_idle_threads = 0
         self.n_spawned_threads = 0
 
-        self.pending_queue = TaskQueue(max_capacity)
+        self.pending_queue = Queue.Queue(max_capacity)
         self.pending_queue_convar = ConVar(self.mutex)
 
-    def postTask(self, func, args=(), kwargs={}):
-        return self.__addTask(PendingTask(func, args, kwargs))
+        global threads_pool
+        threads_pool = self
 
-    def __addTask(self, task):
+    def post_task(self, func, args=None, kwargs=None):
+        args = args or ()
+        kwargs = kwargs or {}
+        logging.debug("post task, func: {0} args: {1}, kwargs: {2}"
+                      .format(func, args, kwargs))
+        return self._add_task(PendingTask(func, args, kwargs))
+
+    def _add_task(self, task):
         assert self.n_spawned_threads >= 0
 
-        with ScopedLock(self.mutex) as lock:
+        with self.mutex as lock:
             self.pending_queue.put(task)
 
-            if (self.n_idle_threads < self.pending_queue.size()
+            if (self.n_idle_threads < self.pending_queue.qsize()
                     and self.n_spawned_threads < self.max_worker_threads):
-                Worker.spawnNoneJoinableThread(self)
+                Worker.spawn_daemonic_thread(self)
                 self.n_spawned_threads += 1
             else:
                 self.pending_queue_convar.notify()
         return True
 
-    def waitForTask(self):
-        with ScopedLock(self.mutex) as lock:
-
+    def wait_task(self):
+        with self.mutex as lock:
             left_time = self.max_idle_before_exit
             end_time = time.time() + left_time
             while self.pending_queue.empty() and left_time > 0 and not self.terminated:
@@ -167,38 +117,37 @@ class DynamicThreadPool(object):
                 left_time = end_time - time.time()
 
             try:
-                task = self.pending_queue.pop()
+                task = self.pending_queue.get_nowait()
                 return task
-            except Empty:
+            except Queue.Empty:
                 return PendingTask()
 
     def terminate(self):
-        with ScopedLock(self.mutex) as lock:
+        with self.mutex as lock:
             if self.terminated:
                 return
             self.terminated = True
             self.pending_queue_convar.notifyAll()
 
-    def decSpawnedThreads(self):
-        with ScopedLock(self.mutex) as lock:
+    def desc_spawned_thread(self):
+        with self.mutex as lock:
             self.n_spawned_threads -= 1
 
 
 if __name__ == "__main__":
-    import time
     import random
 
     def func(*args, **kwargs):
         print '[{0}] starts job'.format(args[0])
-        time.sleep(random.randint(1, 10))
+        time.sleep(random.randint(1, 3))
         print '[{0}] ends job'.format(args[0])
 
-    pool = DynamicThreadPool(2, 10)
+    pool = DynamicThreadPool(100, 10)
     for i in range(10):
-        pool.postTask(func, ('seq %d' % i, i), {'k':i})
+        pool.post_task(func, ('seq %d' % i, i), {'k':i})
 
     time.sleep(20)
-    pool.postTask(func, ('last work', 'last'), {'last':'last'})
+    pool.post_task(func, ('last work', 'last'), {'last':'last'})
 
     time.sleep(5)
     pool.terminate()
