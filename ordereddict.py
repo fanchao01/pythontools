@@ -87,7 +87,7 @@ class OrderedDict(dict):
             if not d:
                 raise KeyError(e)
 
-        self[k] = d
+        self[key] = d
         return d
 
     def popitem(self, last=True):
